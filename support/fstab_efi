@@ -1,0 +1,5 @@
+# Partition UUIDs can be retrieve using blkid -s UUID - value /dev/<device>
+# <fs>                                         <mountpoint>        <type>          <opts>                      <dump/pass>
+60e4-652e                                      /boot               vfat            defaults,noatime            0 2
+0a68da28-4ddc-4d51-a3d3-9c505b01407c           none                swap            sw                          0 0
+f17599d8-1bf9-49c9-b3be-295fc145502c           /root               ext4            noatime                     0 1
