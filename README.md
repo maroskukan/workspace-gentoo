@@ -2,14 +2,21 @@
 
 - [Gentoo Development Machine Workspace](#gentoo-development-machine-workspace)
   - [Introduction](#introduction)
+  - [Documentation](#documentation)
   - [Host Hypervisor settings](#host-hypervisor-settings)
     - [Hyper-V](#hyper-v)
-  - [Installation](#installation)
+      - [EFI-based VM (Generation 2)](#efi-based-vm-generation-2)
+  - [Installation - EFI based machine](#installation---efi-based-machine)
 
 
 ## Introduction
 
 This repository contains notes for a fresh Gentoo Linux installation.
+
+
+## Documentation
+
+- [Gentoo as Guest OS in Hyper-V](https://wiki.gentoo.org/wiki/Hyper-V)
 
 
 ## Host Hypervisor settings
@@ -18,58 +25,22 @@ Download the latest Minimal Installation CD file from [Gentoo website](https://w
 
 ### Hyper-V
 
-In order to boot the Arch ISO you need to disable Secure Boot in VM settings. Create a generic Generation v2 VM with 2vCPU, 2048 Mb RAM, and 20GB HDD abd connect to `Default Switch`.
+#### EFI-based VM (Generation 2)
+
+In order to boot the Gentoo Live ISO you need to disable Secure Boot in VM settings. Create a generic Generation v2 VM with 4vCPU, 8192 Mb RAM, and 20GB HDD abd connect to `Default Switch`.
 
 > **Warning**: You are not using elevated privileges ensure that your user account is member of Hyper-V Administrators group.
 
+Simple script for crating an EFI-based virtual machine can be referenced at `./scripts/gentoo_efi.ps1`
 
 
-```powershell
-# Set VM Name, Switch Name, and Installation Media Path.
-$VMName = 'gentoo_efi'
-$Switch = 'Default Switch'
-$InstallMedia = 'C:\iso\install-amd64-minimal-20220911T170535Z.iso'
+## Installation - EFI based machine
 
-# Create New Virtual Machine
-New-VM -Name $VMName `
-       -Generation 2 `
-       -MemoryStartupBytes 2GB `
-       -NewVHDPath "C:\Users\Public\Documents\Hyper-V\Virtual hard disks\$VMName\$VMName.vhdx" `
-       -NewVHDSizeBytes 20GB `
-       -Path "C:\Users\Public\Documents\Hyper-V\Virtual hard disks\$VMName" `
-       -Switch $Switch
-
-# Set processor count and dynamic memory
-Set-VM -VMName $VMName -ProcessorCount 2
-
-# Disable Secure Boot
-Set-VMFirmware -VMName $VMName -EnableSecureBoot Off
-
-# Add DVD Drive to Virtual Machine
-Add-VMScsiController -VMName $VMName
-Add-VMDvdDrive -VMName $VMName -ControllerNumber 1 -ControllerLocation 0 -Path $InstallMedia
-
-# Mount Installation Media
-$DVDDrive = Get-VMDvdDrive -VMName $VMName
-
-# Configure Virtual Machine to Boot from DVD
-Set-VMFirmware -VMName $VMName -FirstBootDevice $DVDDrive
-
-# Start Virtual Machine
-Start-VM -Name $VMName
-```
-
-
-## Installation
-
-Once you are dropped in the live CD shell, start the SSH server with `/etc/init.d/sshd start` and set `root` password with `passwd` or `chpasswd` this gives you remote access the installation via SSH as oppose to using Virtual Console.
+Once you are dropped in the live CD shell, start the SSH server with `openrc -s sshd start` and set `root` password with `chpasswd` this gives you remote access the installation via SSH as oppose to using Virtual Console.
 
 ```bash
 echo "root:gentoorocks"|chpasswd
 ```
 
-Finally, retrieve the installation environment IP address.
+> **Tip**: The root password can also be entered as boot option with e.g. `passwd=gentroorocks`. And SSH server can be automatically started with `dosshd`.
 
-```bash
-ip a show dev eth0
-```
